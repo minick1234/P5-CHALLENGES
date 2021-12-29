@@ -1,7 +1,7 @@
 function Ship() {
     this.x = width / 2;
     this.y = height - 30;
-    this.xSpeed = 1;
+    this.xSpeed = 3;
     this.shipWidth = 60;
 
     this.show = function () {

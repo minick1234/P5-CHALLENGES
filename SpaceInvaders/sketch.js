@@ -63,10 +63,23 @@ function draw() {
         shots.splice(hitIndex, 1);
     }
 
+
+    var alienHitEdge = false;
     //for now what this does it prints out all the aliens to the screen from the array,
     //the position they spawn at is determined when they are first created.
     for (var i = 0; i < aliens.length; i++) {
         aliens[i].show();
+        aliens[i].move();
+
+        if(aliens[i].x > width - alienWidth || aliens[i].x < 0 + alienWidth){
+            alienHitEdge = true;
+        }
+        if(alienHitEdge){
+            for(var i = 0; i <  aliens.length; i++){
+                aliens[i].shiftDown();
+            }
+        }
+
     }
 }
 
