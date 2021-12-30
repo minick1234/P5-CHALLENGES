@@ -10,9 +10,13 @@ var currentCell;
 
 var stackOfCells = [];
 
+var startingCellIndex;
+
 function setup() {
     createCanvas(2400, 2400);
 
+    //for debugging purposes to see the grid populate slowly.
+    //frameRate(2);
 
     //assign the rows and columns to be the size of the height and width divided by whatever the size of the cell is.
     cols = floor(width / sizeOfCell);
@@ -33,9 +37,11 @@ function setup() {
     //make the current cell start at a random cell from 0 to the grid length, and floor the number to make sure
     //it returns a whole numbers.
     var randomCellIndex = floor(random(0, grid.length - 1));
-
+    startingCellIndex = randomCellIndex;
     //make the current cell the cell at the grid based on the random number as a index.
     currentCell = grid[randomCellIndex];
+    //set the current random cell we selected as the starting cell, so it can be marked as green.
+    currentCell.SetStartingCell();
 }
 
 function draw() {
@@ -52,9 +58,10 @@ function draw() {
     //checks the current cell too see if it has any neighbours and adds the neighbors to a array inside of that cell.
     //then returns a random neighbor if one exists and assign it to the var.
     var nextCell = currentCell.checkNeighbors();
+
     if (nextCell) {
         nextCell.visted = true;
-
+        nextCell.currentEnd = true;
         stackOfCells.push(currentCell);
 
         //remove the walls between the cells before we set the currentcell to the next cell to repeat the process.
@@ -62,9 +69,20 @@ function draw() {
 
         //set the currentcell to the next cell in order to now look for the next cells neighbor.
         currentCell = nextCell;
+
     } else if (stackOfCells.length > 0) {
+        console.log(stackOfCells.length);
         currentCell = stackOfCells.pop();
+        currentCell.currentEnd = false;
     }
+
+    if(stackOfCells <= 1){
+        currentCell.lastCell = true;
+        fill(255,0,0);
+        rect(grid[startingCellIndex].col * sizeOfCell + (sizeOfCell/3), grid[startingCellIndex].row * sizeOfCell + (sizeOfCell / 3), sizeOfCell/3, sizeOfCell/3)
+    }
+
+
 }
 
 function removeWalls(curCell, nextCell) {
@@ -114,6 +132,11 @@ function Cell(row, col) {
     //stores information for the current cell to check if it has been visited.
     this.visted = false;
 
+    this.startingCell = false;
+    this.lastCell = false;
+    this.currentEnd = false;
+
+
     //this functions checks the top, right, left, and bottom to see if there is any neighbors beside it that arent visited yet
     this.checkNeighbors = function () {
         var neighbors = [];
@@ -123,26 +146,43 @@ function Cell(row, col) {
         var bottom = grid[index(col, row + 1)];
         var left = grid[index(col - 1, row)];
 
+
         if (top && !top.visted) {
             neighbors.push(top);
+            console.log("Top row " + top.row + " Top Col " + top.col + "\nrow/col index: " + index(col, row - 1) + " row and col value " + row + "/" + col);
+
         }
         if (right && !right.visted) {
             neighbors.push(right);
+            console.log("right row " + right.row + " right Col " + right.col + "\nrow/col index: " + index(col + 1, row) + " row and col value " + row + "/" + col);
+
         }
         if (bottom && !bottom.visted) {
             neighbors.push(bottom);
+            console.log("bottom row " + bottom.row + " bottom Col " + bottom.col + "\nrow/col index: " + index(col, row + 1) + " row and col value " + row + "/" + col);
+
         }
         if (left && !left.visted) {
+            console.log("left row " + left.row + " left Col " + left.col + "\nrow/col index: " + index(col - 1, row) + " row and col value " + row + "/" + col);
             neighbors.push(left);
         }
 
         if (neighbors.length > 0) {
             var r = floor(random(0, neighbors.length));
-
+            console.log("Stack of cell count: " + stackOfCells.length);
+            console.log("\n\n");
             return neighbors[r]
         } else {
             return undefined;
         }
+    }
+
+    this.SetStartingCell = function () {
+        this.startingCell = true;
+    }
+
+    this.SetLastCell = function (){
+        this.lastCell = true;
     }
 
     this.highlight = function () {
@@ -153,9 +193,22 @@ function Cell(row, col) {
         // 3 * 60 to get the 180 world position on the screen.
         var y = this.row * sizeOfCell;
 
-        noStroke();
-        fill(0, 0, 255, 100);
-        rect(x, y, sizeOfCell, sizeOfCell);
+        if(!this.lastCell){
+            if(this.currentEnd){
+                noStroke();
+                fill(255, 255, 255, 100);
+                rect(x, y, sizeOfCell, sizeOfCell);
+            }
+            noStroke();
+            fill(0, 0, 255, 100);
+            rect(x, y, sizeOfCell, sizeOfCell);
+        }
+        else {
+            //if its the last cell make it just bright green.
+            noStroke();
+            fill(0, 255, 0);
+            rect(x, y, sizeOfCell, sizeOfCell);
+        }
 
     }
 
@@ -187,11 +240,20 @@ function Cell(row, col) {
         }
 
         // if the cell is visited just make it a purple colour for now.
+
         if (this.visted) {
-            noStroke();
-            fill(255, 0, 255, 100);
-            rect(x, y, sizeOfCell, sizeOfCell);
-        }
+            if (this.startingCell) {
+                noStroke();
+                fill(0, 255, 0);
+                rect(x, y, sizeOfCell, sizeOfCell);
+            }
+            else {
+                noStroke();
+                fill(255, 0, 255, 100);
+                rect(x, y, sizeOfCell, sizeOfCell);
+                }
+            }
+
         //do not fill the rectangles with anything inside of it.
         // noFill();
         //draw a rect at the x and y position with the size of the cell on both length and width
