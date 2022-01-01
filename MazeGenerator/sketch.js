@@ -13,7 +13,7 @@ var stackOfCells = [];
 var startingCellIndex;
 
 function setup() {
-    createCanvas(2400, 2400);
+    createCanvas(1200, 1200);
 
     //for debugging purposes to see the grid populate slowly.
     //frameRate(2);
